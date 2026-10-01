@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tapstreak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EDF2;--surface:#FFFFFF;--ink:#172033;--muted:#5E6A7D;--line:#D3DAE4;
+  --cobalt:#2B50D8;--cobalt-soft:#DDE4FB;--on-cobalt:#FFFFFF;--gold:#B7800A;--gold-line:#E0A21B;--gold-soft:#FCEFC8;--danger:#B42F2F;
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,-apple-system,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10151F;--surface:#1A2130;--ink:#E6EAF2;--muted:#9AA6B8;--line:#2B3448;
+  --cobalt:#8AA4FF;--cobalt-soft:#243056;--on-cobalt:#0E1424;--gold:#F5C455;--gold-line:#F5C455;--gold-soft:#3A3120;--danger:#F08080;}}
+:root[data-theme="dark"]{
+  --bg:#10151F;--surface:#1A2130;--ink:#E6EAF2;--muted:#9AA6B8;--line:#2B3448;
+  --cobalt:#8AA4FF;--cobalt-soft:#243056;--on-cobalt:#0E1424;--gold:#F5C455;--gold-line:#F5C455;--gold-soft:#3A3120;--danger:#F08080;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:22px 18px 130px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em}
+h2{font-size:28px;font-weight:800;margin-bottom:14px}
+h3{font-size:19px;font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+/* Today header */
+.date{color:var(--muted);font-weight:600}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:4px 0 14px}
+.count{font-family:var(--display);font-weight:800;font-size:clamp(60px,17vw,88px);line-height:.88;letter-spacing:-.04em}
+.count span{color:var(--muted);font-size:.45em;letter-spacing:-.02em}
+.count-label{font-weight:600;margin-top:6px}
+.lvl{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 14px;text-align:right;min-width:104px}
+.lvl b{display:block;font-family:var(--display);font-size:22px;line-height:1.1}
+.segs{display:flex;gap:5px;margin-bottom:22px}
+.seg{flex:1;height:8px;border-radius:4px;background:var(--line);transition:background .3s}
+.seg.on{background:var(--cobalt)}
+
+/* Habit cards */
+.list{display:flex;flex-direction:column;gap:12px}
+.card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 16px}
+.card.rest{opacity:.7}
+.tag{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:27px;border:2px dashed var(--line);position:relative;flex:none}
+.tag.done{border:2px solid var(--cobalt);background:var(--cobalt-soft)}
+.tag.done::after{content:"✓";position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;
+  background:var(--cobalt);color:var(--on-cobalt);font-size:13px;font-weight:700;display:grid;place-items:center}
+.tag.met{border:2px solid var(--cobalt)}
+.name{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2}
+.room{color:var(--muted);font-size:14px}
+.week{display:flex;gap:5px;margin-top:8px}
+.dot{width:19px;height:19px;border-radius:50%;border:1px solid var(--line);font-size:9px;font-weight:700;display:grid;place-items:center;color:var(--muted)}
+.dot.on{background:var(--cobalt);border-color:var(--cobalt);color:var(--on-cobalt)}
+.dot.today{outline:2px solid var(--ink);outline-offset:1px}
+.dot.fut{opacity:.4}
+.streak{text-align:right}
+.streak b{display:block;font-family:var(--display);font-weight:800;font-size:34px;line-height:1}
+.streak span{font-size:12px;color:var(--muted);font-weight:600}
+.risk{font-size:12px;color:var(--gold);font-weight:700;margin-top:4px;white-space:nowrap}
+.ok{font-size:12px;color:var(--cobalt);font-weight:700;margin-top:4px;white-space:nowrap}
+
+.add-row{margin-top:16px;display:flex;gap:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:22px;padding:22px}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px}
+.pill{display:inline-block;background:var(--cobalt-soft);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:700}
+
+/* Buttons & inputs */
+.btn{border:0;border-radius:14px;padding:13px 18px;font-weight:700;background:var(--cobalt);color:var(--on-cobalt)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--line)}
+.btn.block{width:100%}
+.btn.sm{padding:8px 14px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+textarea{min-height:120px;font-size:13px}
+.emojis{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.emojis button{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:22px;padding:0}
+.emojis button[aria-pressed="true"],.freq button[aria-pressed="true"]{border:2px solid var(--cobalt);background:var(--cobalt-soft)}
+.freq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.freq button{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 4px;font-weight:600;font-size:15px}
+.row{display:flex;gap:10px;margin-top:18px}
+.row>*{flex:1}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:16px}
+.bank{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.bank b{font-family:var(--display);font-size:52px;font-weight:800;line-height:.9;letter-spacing:-.03em}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;background:var(--gold-line);border-radius:5px}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 10px}
+.badge{text-align:center;font-size:12px;font-weight:600;color:var(--muted)}
+.medal{width:58px;height:58px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--display);font-weight:800;font-size:19px;border:2px dashed var(--line);color:var(--muted)}
+.medal.got{border:3px solid var(--gold-line);background:var(--gold-soft);color:var(--ink)}
+.reward{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.reward:first-of-type{border-top:0}
+
+/* Heatmap */
+.hmhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.hmwrap{display:flex;gap:6px}
+.hmdays{display:grid;grid-template-rows:14px repeat(7,12px);gap:3px;font-size:10px;line-height:12px;color:var(--muted);font-weight:600;flex:none}
+.hmscroll{overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.hmmonths{display:grid;grid-auto-flow:column;grid-auto-columns:12px;gap:3px;height:14px;font-size:10px;line-height:12px;color:var(--muted);font-weight:600}
+.hmmonths span{white-space:nowrap;overflow:visible}
+.hm{display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;grid-auto-columns:12px;gap:3px}
+.hm i{border-radius:3px;background:var(--bg)}
+.panel .hm i{background:var(--bg)}
+.hm .l1{background:color-mix(in srgb,var(--cobalt) 30%,var(--bg))}
+.hm .l2{background:color-mix(in srgb,var(--cobalt) 55%,var(--bg))}
+.hm .l3{background:color-mix(in srgb,var(--cobalt) 78%,var(--bg))}
+.hm .l4{background:var(--cobalt)}
+.hm .fut{background:transparent!important}
+.hm .now{outline:1.5px solid var(--ink);outline-offset:0}
+.legend{display:flex;align-items:center;gap:4px;justify-content:flex-end;font-size:11px;color:var(--muted);margin-top:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* Tags */
+.steps{margin:0;padding-left:22px}
+.steps li{margin-bottom:10px}
+.tagurl{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.tagurl:first-of-type{border-top:0}
+.tagurl code{display:block;font-size:12px;color:var(--muted);word-break:break-all}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,12,20,.5);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+.sheet{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--surface);border-radius:26px 26px 0 0;
+  padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));animation:rise .28s ease-out}
+.sheet.still{animation:none}
+@keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.detail-head{display:flex;gap:14px;align-items:center}
+.detail-head .grow{flex:1;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stat{background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:26px;font-weight:800}
+.stat span{font-size:12px;color:var(--muted);font-weight:600}
+.block-title{font-weight:700;margin:0}
+.sub{background:var(--bg);border-radius:18px;padding:14px;margin-bottom:14px}
+.sub .hm i{background:var(--surface)}
+.sub .hm .l1{background:color-mix(in srgb,var(--cobalt) 30%,var(--surface))}
+.sub .hm .l2{background:color-mix(in srgb,var(--cobalt) 55%,var(--surface))}
+.sub .hm .l3{background:color-mix(in srgb,var(--cobalt) 78%,var(--surface))}
+.sub .hm .l4{background:var(--cobalt)}
+.mcal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.navs{display:flex;gap:8px}
+.navbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
+.navbtn:disabled{opacity:.35;cursor:not-allowed}
+.mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.mcal .hd{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding-bottom:2px}
+.mcal button,.mcal span.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:14px;font-weight:600;border:0;background:none;padding:0}
+.mcal .out{color:var(--muted);opacity:.35}
+.mcal .on{background:var(--cobalt);color:var(--on-cobalt)}
+.mcal .today{box-shadow:inset 0 0 0 2px var(--cobalt)}
+.mcal .on.today{box-shadow:inset 0 0 0 2px var(--on-cobalt)}
+.mcal .fut{color:var(--muted);opacity:.4}
+
+/* Stamp celebration */
+.stampwrap{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center}
+.stamp{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;font-size:78px;
+  border:7px solid var(--cobalt);box-shadow:inset 0 0 0 7px var(--bg),inset 0 0 0 10px var(--cobalt);
+  transform:rotate(-8deg);animation:thunk .5s cubic-bezier(.2,1.5,.4,1) both}
+.stamp.again{border-color:var(--muted);box-shadow:inset 0 0 0 7px var(--bg),inset 0 0 0 10px var(--muted)}
+@keyframes thunk{from{transform:scale(1.9) rotate(-22deg);opacity:0}to{transform:scale(1) rotate(-8deg);opacity:1}}
+.big{font-family:var(--display);font-weight:800;font-size:44px;letter-spacing:-.03em;margin-top:26px;line-height:1}
+.milestone{margin-top:16px;background:var(--gold-soft);border:2px solid var(--gold-line);border-radius:16px;padding:12px 18px;font-weight:700}
+.stampwrap .btn{margin-top:28px;min-width:200px}
+
+/* Nav & toast */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+nav .in{max-width:560px;margin:0 auto;display:flex}
+nav button{flex:1;background:none;border:0;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--muted)}
+nav button[aria-current="page"]{color:var(--cobalt)}
+nav svg{width:24px;height:24px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:50;max-width:90%;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap" id="view"></main>
+<nav aria-label="Sections"><div class="in">
+  <button data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>Today</button>
+  <button data-tab="rewards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="M8.5 14l-1.5 7 5-2.5 5 2.5-1.5-7"/></svg>Rewards</button>
+  <button data-tab="tags"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 9a5 5 0 010 6M11.5 7a8 8 0 010 10M14.5 5.5a10 10 0 010 13"/></svg>Tags</button>
+</div></nav>
+<div id="layer"></div>
+
+<script>
+const KEY = 'tapstreak.v1';
+const EMOJI = ['💧','🪴','🦷','💊','📚','🧘','🏃','🏋️','🛏️','🍳','🧺','🐕','✍️','🎸','🧹','🌙'];
+const ROOMS = ['Kitchen','Bathroom','Bedroom','Living room','Office','Front door','Garage'];
+const FREQS = [7,5,4,3,2,1];
+const DAY_MILESTONES = [3,7,14,30,60,100,200,365];
+const WEEK_MILESTONES = [2,4,8,12,26,52,78,104];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SUGGEST = [
+  {name:'Water the plants',emoji:'🪴',room:'Living room',freq:2},
+  {name:'Take vitamins',emoji:'💊',room:'Kitchen',freq:7},
+  {name:'Floss',emoji:'🦷',room:'Bathroom',freq:7},
+  {name:'Gym day',emoji:'🏋️',room:'Front door',freq:3},
+  {name:'Read 10 pages',emoji:'📚',room:'Bedroom',freq:5}
+];
+
+/* ---------- storage ---------- */
+function blank(){ return {habits:[], rewards:[], redeemed:[], base:''}; }
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw) return Object.assign(blank(), JSON.parse(raw)); }catch(e){}
+  return blank();
+}
+let S = load();
+S.habits.forEach(h => { if(!h.freq) h.freq = 7; });
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast('Couldn’t save: this browser is blocking storage'); }
+}
+
+/* ---------- dates ---------- */
+const pad = n => String(n).padStart(2,'0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => keyOf(new Date());
+function addDays(k, n){ const [y,m,d] = k.split('-').map(Number); return keyOf(new Date(y, m-1, d+n)); }
+function dateOf(k){ const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); }
+const weekStart = k => addDays(k, -((dateOf(k).getDay()+6)%7)); // Monday
+
+/* ---------- frequency, streaks, points ---------- */
+const isDaily = h => (h.freq||7) === 7;
+const target = h => h.freq||7;
+const freqLabel = f => f===7 ? 'Daily' : f===1 ? 'Once a week' : `${f}× a week`;
+const unit = (h,n) => isDaily(h) ? (n===1?'day':'days') : (n===1?'week':'weeks');
+function weekCounts(h){ const c = {}; for(const d of new Set(h.log)){ const w = weekStart(d); c[w]=(c[w]||0)+1; } return c; }
+const thisWeek = h => weekCounts(h)[weekStart(today())] || 0;
+const metThisWeek = h => !isDaily(h) && thisWeek(h) >= target(h);
+const doneToday = h => h.log.includes(today());
+
+function weeksRunBefore(counts, t, w){ let n=0, x=addDays(w,-7); while((counts[x]||0) >= t){ n++; x=addDays(x,-7); } return n; }
+function streakOf(h){
+  if(isDaily(h)){
+    const set = new Set(h.log); let d = today();
+    if(!set.has(d)) d = addDays(d,-1);
+    let n = 0; while(set.has(d)){ n++; d = addDays(d,-1); } return n;
+  }
+  const c = weekCounts(h), t = target(h), w = weekStart(today());
+  return weeksRunBefore(c, t, w) + ((c[w]||0) >= t ? 1 : 0); // this week only counts once it's met
+}
+function bestOf(h){
+  if(isDaily(h)){
+    const ds = [...new Set(h.log)].sort(); let best=0, run=0, prev=null;
+    for(const d of ds){ run = (prev && addDays(prev,1)===d) ? run+1 : 1; best = Math.max(best,run); prev = d; }
+    return best;
+  }
+  const c = weekCounts(h), t = target(h);
+  const met = Object.keys(c).filter(w => c[w] >= t).sort(); let best=0, run=0, prev=null;
+  for(const w of met){ run = (prev && addDays(prev,7)===w) ? run+1 : 1; best = Math.max(best,run); prev = w; }
+  return best;
+}
+// Daily: +2 per day of streak (max +40). Weekly: +4 per week of streak (max +40).
+function tapValueAt(h, d, dayRun, counts){
+  if(isDaily(h)) return 10 + Math.min(dayRun-1, 20)*2;
+  return 10 + Math.min(weeksRunBefore(counts, target(h), weekStart(d)), 10)*4;
+}
+function habitPoints(h){
+  const ds = [...new Set(h.log)].sort(), counts = isDaily(h) ? null : weekCounts(h);
+  let pts=0, run=0, prev=null;
+  for(const d of ds){ run = (prev && addDays(prev,1)===d) ? run+1 : 1; pts += tapValueAt(h, d, run, counts); prev = d; }
+  return pts;
+}
+const earned = () => S.habits.reduce((a,h)=>a+habitPoints(h),0);
+const spent = () => S.redeemed.reduce((a,r)=>a+r.cost,0);
+const levelFloor = n => 100*(n-1)*n/2;
+function levelOf(p){ let n=1; while(p >= levelFloor(n+1)) n++; return n; }
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,8);
+const $ = s => document.querySelector(s);
+let toastTimer;
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t = document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent = msg;
+  document.body.appendChild(t); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.remove(), 2600);
+}
+async function copyText(s){
+  try{ await navigator.clipboard.writeText(s); toast('Copied'); return; }catch(e){}
+  const ta = document.createElement('textarea'); ta.value = s; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('Copied'); }catch(e){ toast('Copy failed: select and copy it manually'); }
+  ta.remove();
+}
+function baseUrl(){
+  if(S.base) return S.base.replace(/[#?].*$/,'');
+  return location.origin && location.origin !== 'null' ? location.origin + location.pathname : '';
+}
+const tagUrl = h => `${baseUrl()}#tap=${h.id}`;
+
+/* ---------- heatmap ---------- */
+function heatmap(levelFn, weeks){
+  const t = today(), start = addDays(weekStart(t), -(weeks-1)*7);
+  let months = '', cells = '', lastM = -1;
+  for(let w=0; w<weeks; w++){
+    const wk = addDays(start, w*7), m = dateOf(wk).getMonth();
+    months += `<span>${m !== lastM ? MONTHS[m] : ''}</span>`; lastM = m;
+    for(let d=0; d<7; d++){
+      const k = addDays(start, w*7+d);
+      if(k > t){ cells += `<i class="fut"></i>`; continue; }
+      const [lvl, label] = levelFn(k);
+      cells += `<i class="l${lvl}${k===t?' now':''}" title="${dateOf(k).toDateString()}: ${label}"></i>`;
+    }
+  }
+  return `<div class="hmwrap"><div class="hmdays"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span>Sun</span></div>
+    <div class="hmscroll"><div class="hmmonths">${months}</div><div class="hm" role="img" aria-label="Activity heatmap">${cells}</div></div></div>`;
+}
+const scrollHeatmaps = () => document.querySelectorAll('.hmscroll').forEach(el => el.scrollLeft = el.scrollWidth);
+function habitHeat(h){ const set = new Set(h.log); return k => set.has(k) ? [4,'done'] : [0,'not done']; }
+function overallHeat(k){
+  const n = S.habits.length; if(!n) return [0,'nothing'];
+  const done = S.habits.filter(h => h.log.includes(k)).length;
+  return done ? [Math.max(1, Math.ceil(done/n*4)), `${done} of ${n} habits`] : [0,'no habits'];
+}
+
+/* ---------- views ---------- */
+let tab = 'today';
+function render(){
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.tab===tab ? 'page' : 'false'));
+  $('#view').innerHTML = tab==='today' ? viewToday() : tab==='rewards' ? viewRewards() : viewTags();
+  scrollHeatmaps();
+}
+
+function weekDots(h){
+  const set = new Set(h.log), t = today(); let out='';
+  const start = isDaily(h) ? addDays(t,-6) : weekStart(t);
+  for(let i=0;i<7;i++){
+    const k = addDays(start,i), d = dateOf(k);
+    out += `<span class="dot${set.has(k)?' on':''}${k===t?' today':''}${k>t?' fut':''}" title="${d.toDateString()}">${'SMTWTFS'[d.getDay()]}</span>`;
+  }
+  return out;
+}
+
+function viewToday(){
+  const dateStr = new Date().toLocaleDateString(undefined,{weekday:'long', day:'numeric', month:'long'});
+  const bal = earned() - spent(), lvl = levelOf(earned());
+  if(!S.habits.length){
+    return `<p class="date">${dateStr}</p>
+    <h1 class="count" style="margin:6px 0 18px">Tap to<br>build streaks</h1>
+    <div class="empty">
+      <h3>Add your first habit</h3>
+      <p class="muted">Each habit gets its own NFC sticker. Put it where the habit happens, then tap it with your phone to stamp the day.</p>
+      <div class="suggest">${SUGGEST.map((s,i)=>`<button class="chip" data-suggest="${i}">${s.emoji} ${esc(s.name)}</button>`).join('')}</div>
+      <div class="add-row"><button class="btn" data-act="add">Create your own</button></div>
+    </div>`;
+  }
+  const due = S.habits.filter(h => isDaily(h) || doneToday(h) || !metThisWeek(h));
+  const done = due.filter(doneToday).length;
+  const pending = h => !doneToday(h) && !metThisWeek(h);
+  const sorted = [...S.habits].sort((a,b) => pending(b) - pending(a));
+  return `<p class="date">${dateStr}</p>
+  <div class="hero">
+    <div><div class="count">${done}<span>/${due.length}</span></div><div class="count-label">${done===due.length?'All done for today':'tapped today'}</div></div>
+    <div class="lvl"><span class="small muted">Level</span><b>${lvl}</b><span class="small muted">${bal} pts</span></div>
+  </div>
+  <div class="segs" aria-hidden="true">${due.map(h=>`<i class="seg${doneToday(h)?' on':''}"></i>`).join('')}</div>
+  <div class="list">${sorted.map(h=>{
+    const s = streakOf(h), dn = doneToday(h), daily = isDaily(h), n = thisWeek(h), t = target(h), met = metThisWeek(h);
+    let note = '';
+    if(daily && !dn && s>0) note = `<div class="risk">Tap today</div>`;
+    else if(!daily && met) note = `<div class="ok">Week done</div>`;
+    else if(!daily) note = `<div class="${s>0?'risk':'ok'}">${n} of ${t} this week</div>`;
+    return `<button class="card${met && !dn ? ' rest' : ''}" data-open="${h.id}" aria-label="${esc(h.name)}, ${s} ${unit(h,s)} streak${dn?', done today':''}">
+      <span class="tag${dn?' done':met?' met':''}">${h.emoji}</span>
+      <span><span class="name">${esc(h.name)}</span><br><span class="room">${esc(h.room ? h.room+', ' : '')}${freqLabel(t).toLowerCase()}</span>
+        <span class="week">${weekDots(h)}</span></span>
+      <span class="streak"><b>${s}</b><span>${unit(h,s)}</span>${note}</span>
+    </button>`;}).join('')}
+  </div>
+  <div class="add-row"><button class="btn ghost block" data-act="add">Add a habit</button></div>`;
+}
+
+function badgeRow(title, ms, best, u){
+  return `<p class="small muted" style="margin:14px 0 8px">${title}: best ${best} ${u}${best===1?'':'s'}</p>
+    <div class="badges">${ms.map(m=>`<div class="badge"><div class="medal${best>=m?' got':''}">${m}</div>${m} ${u}s</div>`).join('')}</div>`;
+}
+
+function viewRewards(){
+  const e = earned(), bal = e - spent(), lvl = levelOf(e);
+  const lo = levelFloor(lvl), hi = levelFloor(lvl+1), pct = Math.round((e-lo)/(hi-lo)*100);
+  const dailies = S.habits.filter(isDaily), weeklies = S.habits.filter(h=>!isDaily(h));
+  const yearTaps = S.habits.reduce((a,h)=>a + h.log.filter(d => d > addDays(today(),-365)).length, 0);
+  return `<h2>Rewards</h2>
+  <div class="panel">
+    <div class="bank"><div><span class="muted small">Points to spend</span><br><b>${bal}</b></div>
+      <div style="text-align:right"><span class="muted small">Level</span><br><b style="font-size:34px">${lvl}</b></div></div>
+    <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+    <p class="small muted" style="margin:8px 0 0">${hi-e} points to level ${lvl+1}. Each tap earns 10 points, plus a bonus that grows with your streak (up to +40).</p>
+  </div>
+  <div class="panel">
+    <div class="hmhead"><h3>Your year</h3><span class="small muted">${yearTaps} taps</span></div>
+    ${heatmap(overallHeat, 53)}
+    <div class="legend">Fewer habits <i style="background:var(--bg)"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i> All habits</div>
+  </div>
+  <div class="panel">
+    <h3>Streak badges</h3>
+    ${dailies.length || !weeklies.length ? badgeRow('Daily habits', DAY_MILESTONES, Math.max(0,...dailies.map(bestOf)), 'day') : ''}
+    ${weeklies.length ? badgeRow('Weekly habits', WEEK_MILESTONES, Math.max(0,...weeklies.map(bestOf)), 'week') : ''}
+  </div>
+  <div class="panel">
+    <h3>Treat yourself</h3>
+    <p class="small muted" style="margin:4px 0 8px">Set rewards you actually want, then spend points on them.</p>
+    ${S.rewards.length ? S.rewards.map(r=>`<div class="reward"><div><strong>${esc(r.name)}</strong><br><span class="small muted">${r.cost} pts</span></div>
+      <div style="display:flex;gap:8px"><button class="btn ghost sm" data-delreward="${r.id}" aria-label="Remove ${esc(r.name)}">Remove</button>
+      <button class="btn sm" data-redeem="${r.id}" ${bal<r.cost?'disabled':''}>Redeem</button></div></div>`).join('')
+      : `<p class="muted">No rewards yet. Try "New book" for 500 points or "Takeaway night" for 800.</p>`}
+    <button class="btn ghost block" style="margin-top:12px" data-act="addreward">Add a reward</button>
+  </div>
+  ${S.redeemed.length ? `<div class="panel"><h3>Redeemed</h3>${S.redeemed.slice().reverse().slice(0,10).map(r=>`<div class="reward"><span>${esc(r.name)}</span><span class="small muted">${dateOf(r.date).toLocaleDateString()}</span></div>`).join('')}</div>`:''}`;
+}
+
+function viewTags(){
+  return `<h2>Tags</h2>
+  <div class="panel">
+    <h3>Set up your stickers</h3>
+    <ol class="steps" style="margin-top:12px">
+      <li>Open this page from its permanent web address in Safari, so every tap comes back here.</li>
+      <li>Install a free NFC writer app (for example NFC Tools), choose Write, add a URL record, and paste the habit's link below.</li>
+      <li>Hold the sticker to the top of your iPhone to write it, then stick it where the habit happens.</li>
+      <li>Tap it any time with your phone unlocked, then tap the notification that pops up.</li>
+    </ol>
+    <label for="base">App address</label>
+    <input id="base" inputmode="url" placeholder="https://you.github.io/tapstreak/" value="${esc(S.base || baseUrl())}">
+    <p class="small muted" style="margin:6px 0 0">Tag links are built from this address. Change it if you host the app somewhere else.</p>
+  </div>
+  <div class="panel">
+    <h3>Tag links</h3>
+    ${S.habits.length ? S.habits.map(h=>`<div class="tagurl"><span style="font-size:24px">${h.emoji}</span>
+      <div style="flex:1;min-width:0"><strong>${esc(h.name)}</strong><code>${esc(tagUrl(h))}</code></div>
+      <button class="btn sm" data-copy="${h.id}">Copy</button></div>`).join('')
+      : `<p class="muted">Add a habit first and its link will show up here.</p>`}
+  </div>
+  <div class="panel">
+    <h3>Backup</h3>
+    <p class="small muted" style="margin:4px 0 12px">Your data lives in this browser only. Copy a backup now and then, and paste it back if you switch phones.</p>
+    <div class="row" style="margin-top:0"><button class="btn ghost" data-act="backup">Copy backup</button><button class="btn ghost" data-act="restore">Restore backup</button></div>
+  </div>`;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html, onMount, still){
+  $('#layer').innerHTML = `<div class="scrim" data-close><div class="sheet${still?' still':''}" role="dialog" aria-modal="true">${html}</div></div>`;
+  if(!still){ const first = $('#layer .sheet input, #layer .sheet button'); first && first.focus(); }
+  onMount && onMount();
+}
+const closeSheet = () => { $('#layer').innerHTML = ''; };
+
+function openHabitForm(existing, presetId){
+  let pick = existing ? existing.emoji : EMOJI[0];
+  let freq = existing ? target(existing) : 7;
+  openSheet(`<h2>${existing ? 'Edit habit' : 'New habit'}</h2>
+    ${presetId ? `<p class="muted" style="margin-top:-6px">You tapped a tag that isn't linked yet. Name the habit and it will be linked to that tag.</p>`:''}
+    <label for="hn">What's the habit?</label><input id="hn" placeholder="Gym day" maxlength="40" value="${existing?esc(existing.name):''}">
+    <label>How often?</label>
+    <div class="freq">${FREQS.map(f=>`<button type="button" data-freq="${f}" aria-pressed="${f===freq}">${f===7?'Daily':f===1?'1× week':f+'× week'}</button>`).join('')}</div>
+    <p class="small muted" style="margin:6px 0 0">Weekly habits keep their streak as long as you hit your target each week (Monday to Sunday).</p>
+    <label>Icon</label><div class="emojis">${EMOJI.map(e=>`<button type="button" data-emoji="${e}" aria-pressed="${e===pick}" aria-label="Icon ${e}">${e}</button>`).join('')}</div>
+    <label for="hr">Where's the tag?</label><input id="hr" list="rooms" placeholder="Front door" maxlength="30" value="${existing?esc(existing.room||''):''}">
+    <datalist id="rooms">${ROOMS.map(r=>`<option value="${r}">`).join('')}</datalist>
+    <div class="row"><button class="btn ghost" id="cancelForm">Cancel</button><button class="btn" id="saveHabit">${existing?'Save changes':'Add habit'}</button></div>`,
+  () => {
+    const L = $('#layer');
+    L.querySelectorAll('[data-emoji]').forEach(b=>b.onclick=()=>{ pick=b.dataset.emoji; L.querySelectorAll('[data-emoji]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
+    L.querySelectorAll('[data-freq]').forEach(b=>b.onclick=()=>{ freq=+b.dataset.freq; L.querySelectorAll('[data-freq]').forEach(x=>x.setAttribute('aria-pressed', x===b)); });
+    $('#cancelForm').onclick = () => existing ? openDetail(existing.id) : (closeSheet(), render());
+    $('#saveHabit').onclick = () => {
+      const name = $('#hn').value.trim();
+      if(!name){ $('#hn').focus(); toast('Give the habit a name'); return; }
+      if(existing){
+        Object.assign(existing, {name, emoji:pick, room:$('#hr').value.trim(), freq});
+        save(); render(); openDetail(existing.id); toast('Changes saved'); return;
+      }
+      const h = {id: presetId || uid(), name, emoji: pick, room: $('#hr').value.trim(), freq, created: today(), log: presetId ? [today()] : []};
+      S.habits.push(h); save(); closeSheet(); render();
+      if(presetId) celebrate(h, true); else toast('Added. Grab its tag link from the Tags tab');
+    };
+  });
+}
+
+let calOffset = 0;
+function monthCal(h){
+  const set = new Set(h.log), t = today(), now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth() + calOffset, 1);
+  const lead = (first.getDay()+6)%7, startK = addDays(keyOf(first), -lead);
+  const daysIn = new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+  const cellsN = Math.ceil((lead + daysIn)/7)*7;
+  let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(l=>`<div class="hd">${l}</div>`).join('');
+  for(let i=0;i<cellsN;i++){
+    const k = addDays(startK, i), d = dateOf(k), inMonth = d.getMonth() === first.getMonth();
+    const cls = `${set.has(k)?'on':''}${k===t?' today':''}${!inMonth?' out':''}${k>t?' fut':''}`;
+    html += k > t || !inMonth
+      ? `<span class="cell ${cls}">${d.getDate()}</span>`
+      : `<button class="${cls}" data-day="${k}" aria-pressed="${set.has(k)}" aria-label="${d.toDateString()}">${d.getDate()}</button>`;
+  }
+  return `<div class="mcal-head"><strong>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</strong>
+    <div class="navs"><button class="navbtn" data-mnav="-1" aria-label="Previous month">‹</button>
+    <button class="navbtn" data-mnav="1" aria-label="Next month" ${calOffset>=0?'disabled':''}>›</button></div></div>
+    <div class="mcal">${html}</div>
+    <p class="small muted" style="margin:10px 0 0;text-align:center">Tap a past day to add or remove a stamp</p>`;
+}
+
+function openDetail(id, still){
+  const h = S.habits.find(x=>x.id===id); if(!h) return;
+  const dn = doneToday(h), s = streakOf(h), b = bestOf(h);
+  const halfYear = h.log.filter(d => d > addDays(today(), -182)).length;
+  openSheet(`<div class="detail-head"><span class="tag${dn?' done':''}">${h.emoji}</span>
+      <div class="grow"><h2 style="margin:0">${esc(h.name)}</h2><span class="muted">${esc(h.room||'')}</span></div>
+      <button class="btn ghost sm" id="edit">Edit</button></div>
+    <div style="margin-top:12px"><span class="pill">${freqLabel(target(h))}</span>${!isDaily(h)?` <span class="pill">${thisWeek(h)} of ${target(h)} this week</span>`:''}</div>
+    <div class="stats">
+      <div class="stat"><b>${s}</b><span>Current ${unit(h,2).replace(/s$/,'')} streak</span></div>
+      <div class="stat"><b>${b}</b><span>Best ${unit(h,2).replace(/s$/,'')} streak</span></div>
+      <div class="stat"><b>${new Set(h.log).size}</b><span>Total taps</span></div>
+    </div>
+    <div class="sub"><div class="hmhead"><p class="block-title">Last 6 months</p><span class="small muted">${halfYear} taps</span></div>${heatmap(habitHeat(h), 26)}</div>
+    <div class="sub">${monthCal(h)}</div>
+    <button class="btn block" id="toggle">${dn?'Undo today':'Stamp today without a tag'}</button>
+    <div class="row"><button class="btn ghost" data-copy="${h.id}">Copy tag link</button><button class="btn danger" id="del">Delete habit</button></div>`,
+  () => {
+    scrollHeatmaps();
+    $('#edit').onclick = () => openHabitForm(h);
+    $('#layer').querySelectorAll('[data-mnav]').forEach(b => b.onclick = () => { calOffset = Math.min(0, calOffset + +b.dataset.mnav); keepScroll(() => openDetail(id, true)); });
+    $('#layer').querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
+      const k = b.dataset.day;
+      if(h.log.includes(k)){ h.log = h.log.filter(d=>d!==k); toast('Stamp removed'); }
+      else { h.log.push(k); toast('Stamp added'); }
+      save(); render(); keepScroll(() => openDetail(id, true));
+    });
+    $('#toggle').onclick = () => {
+      if(dn){ h.log = h.log.filter(d=>d!==today()); save(); render(); keepScroll(() => openDetail(id, true)); toast('Today un-stamped'); }
+      else { closeSheet(); stamp(h); }
+    };
+    $('#del').onclick = () => {
+      if(!confirm(`Delete "${h.name}" and its history? Points it earned will be removed too.`)) return;
+      S.habits = S.habits.filter(x=>x!==h); save(); closeSheet(); render(); toast('Habit deleted');
+    };
+  }, still);
+}
+function keepScroll(fn){ const y = $('#layer .sheet')?.scrollTop || 0; fn(); const s = $('#layer .sheet'); if(s) s.scrollTop = y; }
+
+function openAddReward(){
+  openSheet(`<h2>New reward</h2>
+    <label for="rn">Reward</label><input id="rn" placeholder="New book" maxlength="40">
+    <label for="rc">Cost in points</label><input id="rc" type="number" inputmode="numeric" min="10" step="10" value="500">
+    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="saveReward">Add reward</button></div>`,
+  () => { $('#saveReward').onclick = () => {
+    const name = $('#rn').value.trim(), cost = Math.max(1, parseInt($('#rc').value,10)||0);
+    if(!name){ $('#rn').focus(); toast('Name the reward'); return; }
+    S.rewards.push({id:uid(), name, cost}); save(); closeSheet(); render();
+  };});
+}
+
+function openRestore(){
+  openSheet(`<h2>Restore backup</h2><p class="muted">Paste a backup you copied earlier. This replaces everything currently in the app.</p>
+    <textarea id="bk" aria-label="Backup text"></textarea>
+    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="doRestore">Restore</button></div>`,
+  () => { $('#doRestore').onclick = () => {
+    try{ const p = JSON.parse($('#bk').value); if(!Array.isArray(p.habits)) throw 0;
+      S = Object.assign(blank(), p); S.habits.forEach(h => { if(!h.freq) h.freq = 7; });
+      save(); closeSheet(); render(); toast('Backup restored'); }
+    catch(e){ toast('That doesn’t look like a Tapstreak backup'); }
+  };});
+}
+
+/* ---------- stamping ---------- */
+function stamp(h){
+  if(doneToday(h)){ celebrate(h, false); return; }
+  h.log.push(today()); save(); render(); celebrate(h, true);
+}
+function celebrate(h, fresh){
+  const s = streakOf(h), daily = isDaily(h), n = thisWeek(h), t = target(h);
+  const pts = fresh ? tapValueAt(h, today(), s, weekCounts(h)) : 0;
+  let big, line;
+  if(!fresh){ big = 'Already stamped'; line = `${esc(h.name)} is done for today`; }
+  else if(daily){ big = s>1 ? `${s} days in a row` : 'Streak started'; line = `${esc(h.name)}: +${pts} points`; }
+  else if(n === t){ big = 'Week complete'; line = `${esc(h.name)}: ${s} ${unit(h,s)} in a row, +${pts} points`; }
+  else if(n < t){ big = `${n} of ${t} this week`; line = `${esc(h.name)}: ${t-n} more to complete the week, +${pts} points`; }
+  else { big = 'Bonus session'; line = `${esc(h.name)}: ${n} this week, +${pts} points`; }
+  const ms = daily ? DAY_MILESTONES : WEEK_MILESTONES;
+  const hit = fresh && (daily || n === t) && ms.includes(s) && bestOf(h) === s;
+  $('#layer').innerHTML = `<div class="stampwrap" role="dialog" aria-modal="true" aria-label="Stamped">
+    <div class="stamp${fresh?'':' again'}">${h.emoji}</div>
+    <div class="big">${big}</div>
+    <p class="muted" style="margin:10px 0 0;font-size:18px">${line}</p>
+    ${hit ? `<div class="milestone">New badge: ${s}-${unit(h,1)} streak</div>`:''}
+    <button class="btn" data-close>Done</button></div>`;
+  $('#layer .btn').focus();
+}
+
+function handleTap(){
+  const m = location.hash.match(/tap=([\w-]+)/) || location.search.match(/tap=([\w-]+)/);
+  if(!m) return;
+  try{ history.replaceState(null, '', location.pathname); }catch(e){}
+  const h = S.habits.find(x=>x.id===m[1]);
+  if(h) stamp(h); else openHabitForm(null, m[1]);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-open],[data-act],[data-suggest],[data-copy],[data-redeem],[data-delreward],[data-close]');
+  if(!t) return;
+  if(t.hasAttribute('data-close')){ if(e.target === t || t.tagName === 'BUTTON'){ closeSheet(); render(); } return; }
+  if(t.dataset.tab){ tab = t.dataset.tab; render(); window.scrollTo(0,0); }
+  else if(t.dataset.open){ calOffset = 0; openDetail(t.dataset.open); }
+  else if(t.dataset.suggest){ const s = SUGGEST[+t.dataset.suggest]; S.habits.push({id:uid(), ...s, created:today(), log:[]}); save(); render(); }
+  else if(t.dataset.copy){ const h = S.habits.find(x=>x.id===t.dataset.copy); h && copyText(tagUrl(h)); }
+  else if(t.dataset.redeem){
+    const r = S.rewards.find(x=>x.id===t.dataset.redeem);
+    if(r && earned()-spent() >= r.cost){ S.redeemed.push({name:r.name, cost:r.cost, date:today()}); save(); render(); toast(`Enjoy: ${r.name}`); }
+  }
+  else if(t.dataset.delreward){ S.rewards = S.rewards.filter(x=>x.id!==t.dataset.delreward); save(); render(); }
+  else if(t.dataset.act==='add') openHabitForm();
+  else if(t.dataset.act==='addreward') openAddReward();
+  else if(t.dataset.act==='backup') copyText(JSON.stringify(S));
+  else if(t.dataset.act==='restore') openRestore();
+});
+document.addEventListener('change', e => {
+  if(e.target.id==='base'){ S.base = e.target.value.trim(); save(); render(); }
+});
+document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#layer').innerHTML){ closeSheet(); render(); } });
+window.addEventListener('hashchange', handleTap);
+document.addEventListener('visibilitychange', () => { if(!document.hidden && !$('#layer').innerHTML) render(); });
+
+render();
+handleTap();
+</script>
+</body>
+</html>
