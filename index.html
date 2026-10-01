@@ -2,26 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#121212">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tapstreak</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#E9EDF2;--surface:#FFFFFF;--ink:#172033;--muted:#5E6A7D;--line:#D3DAE4;
-  --cobalt:#2B50D8;--cobalt-soft:#DDE4FB;--on-cobalt:#FFFFFF;--gold:#B7800A;--gold-line:#E0A21B;--gold-soft:#FCEFC8;--danger:#B42F2F;
+/* Material dark palette: always dark */
+:root,:root[data-theme="light"],:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121212;--surface:#1E1E1E;--raised:#262626;--ink:rgba(255,255,255,.92);--muted:rgba(255,255,255,.6);--line:rgba(255,255,255,.12);
+  --cobalt:#BB86FC;--cobalt-soft:rgba(187,134,252,.16);--on-cobalt:#000000;--variant:#3700B3;
+  --teal:#03DAC6;--teal-soft:rgba(3,218,198,.14);--on-teal:#000000;
+  --gold:#CF6679;--gold-line:#BB86FC;--gold-soft:rgba(187,134,252,.16);--danger:#CF6679;
   --display:"Bricolage Grotesque",ui-rounded,system-ui,-apple-system,sans-serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#10151F;--surface:#1A2130;--ink:#E6EAF2;--muted:#9AA6B8;--line:#2B3448;
-  --cobalt:#8AA4FF;--cobalt-soft:#243056;--on-cobalt:#0E1424;--gold:#F5C455;--gold-line:#F5C455;--gold-soft:#3A3120;--danger:#F08080;}}
-:root[data-theme="dark"]{
-  --bg:#10151F;--surface:#1A2130;--ink:#E6EAF2;--muted:#9AA6B8;--line:#2B3448;
-  --cobalt:#8AA4FF;--cobalt-soft:#243056;--on-cobalt:#0E1424;--gold:#F5C455;--gold-line:#F5C455;--gold-soft:#3A3120;--danger:#F08080;}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-font-smoothing:antialiased}
@@ -40,11 +38,11 @@ h3{font-size:19px;font-weight:600}
 .count{font-family:var(--display);font-weight:800;font-size:clamp(60px,17vw,88px);line-height:.88;letter-spacing:-.04em}
 .count span{color:var(--muted);font-size:.45em;letter-spacing:-.02em}
 .count-label{font-weight:600;margin-top:6px}
-.lvl{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 14px;text-align:right;min-width:104px}
+.lvl{background:var(--cobalt-soft);border:1px solid var(--line);border-radius:16px;padding:10px 14px;text-align:right;min-width:104px}
 .lvl b{display:block;font-family:var(--display);font-size:22px;line-height:1.1}
 .segs{display:flex;gap:5px;margin-bottom:22px}
 .seg{flex:1;height:8px;border-radius:4px;background:var(--line);transition:background .3s}
-.seg.on{background:var(--cobalt)}
+.seg.on{background:var(--teal)}
 
 /* Habit cards */
 .list{display:flex;flex-direction:column;gap:12px}
@@ -52,24 +50,33 @@ h3{font-size:19px;font-weight:600}
   background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 16px}
 .card.rest{opacity:.7}
 .tag{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:27px;border:2px dashed var(--line);position:relative;flex:none}
-.tag.done{border:2px solid var(--cobalt);background:var(--cobalt-soft)}
+.tag.done{border:2px solid var(--teal);background:var(--teal-soft)}
 .tag.done::after{content:"✓";position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;
-  background:var(--cobalt);color:var(--on-cobalt);font-size:13px;font-weight:700;display:grid;place-items:center}
-.tag.met{border:2px solid var(--cobalt)}
+  background:var(--teal);color:var(--on-teal);font-size:13px;font-weight:700;display:grid;place-items:center}
+.tag.met{border:2px solid var(--teal)}
 .name{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2}
 .room{color:var(--muted);font-size:14px}
 .week{display:flex;gap:5px;margin-top:8px}
 .dot{width:19px;height:19px;border-radius:50%;border:1px solid var(--line);font-size:9px;font-weight:700;display:grid;place-items:center;color:var(--muted)}
-.dot.on{background:var(--cobalt);border-color:var(--cobalt);color:var(--on-cobalt)}
+.dot.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
 .dot.today{outline:2px solid var(--ink);outline-offset:1px}
 .dot.fut{opacity:.4}
 .streak{text-align:right}
 .streak b{display:block;font-family:var(--display);font-weight:800;font-size:34px;line-height:1}
 .streak span{font-size:12px;color:var(--muted);font-weight:600}
 .risk{font-size:12px;color:var(--gold);font-weight:700;margin-top:4px;white-space:nowrap}
-.ok{font-size:12px;color:var(--cobalt);font-weight:700;margin-top:4px;white-space:nowrap}
+.ok{font-size:12px;color:var(--teal);font-weight:700;margin-top:4px;white-space:nowrap}
 
 .add-row{margin-top:16px;display:flex;gap:10px}
+.list-head{display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px}
+.list-head h3{font-size:16px;color:var(--muted)}
+.linkbtn{background:none;border:0;color:var(--cobalt);font-weight:700;padding:6px 4px}
+.card.reorder{cursor:default;transition:transform .18s ease}
+.card.dragging{transition:none;z-index:5;position:relative;box-shadow:0 12px 30px rgba(0,0,0,.6);border-color:var(--cobalt)}
+.handle{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--raised);display:grid;place-items:center;
+  touch-action:none;cursor:grab;color:var(--muted);padding:0}
+.handle svg{width:22px;height:22px}
+.reorder-hint{font-size:13px;color:var(--muted);margin:-4px 2px 10px}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:22px;padding:22px}
 .suggest{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px;font-weight:600;font-size:15px}
@@ -117,10 +124,10 @@ textarea{min-height:120px;font-size:13px}
 .hm{display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;grid-auto-columns:12px;gap:3px}
 .hm i{border-radius:3px;background:var(--bg)}
 .panel .hm i{background:var(--bg)}
-.hm .l1{background:color-mix(in srgb,var(--cobalt) 30%,var(--bg))}
-.hm .l2{background:color-mix(in srgb,var(--cobalt) 55%,var(--bg))}
-.hm .l3{background:color-mix(in srgb,var(--cobalt) 78%,var(--bg))}
-.hm .l4{background:var(--cobalt)}
+.hm .l1{background:color-mix(in srgb,var(--teal) 30%,var(--bg))}
+.hm .l2{background:color-mix(in srgb,var(--teal) 55%,var(--bg))}
+.hm .l3{background:color-mix(in srgb,var(--teal) 78%,var(--bg))}
+.hm .l4{background:var(--teal)}
 .hm .fut{background:transparent!important}
 .hm .now{outline:1.5px solid var(--ink);outline-offset:0}
 .legend{display:flex;align-items:center;gap:4px;justify-content:flex-end;font-size:11px;color:var(--muted);margin-top:6px}
@@ -135,23 +142,23 @@ textarea{min-height:120px;font-size:13px}
 
 /* Sheet */
 .scrim{position:fixed;inset:0;background:rgba(8,12,20,.5);display:flex;align-items:flex-end;justify-content:center;z-index:30}
-.sheet{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--surface);border-radius:26px 26px 0 0;
+.sheet{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--raised);border-radius:26px 26px 0 0;
   padding:22px 20px calc(24px + env(safe-area-inset-bottom,0px));animation:rise .28s ease-out}
 .sheet.still{animation:none}
 @keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .detail-head{display:flex;gap:14px;align-items:center}
 .detail-head .grow{flex:1;min-width:0}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
-.stat{background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center}
+.stat{background:var(--surface);border-radius:14px;padding:12px 8px;text-align:center}
 .stat b{display:block;font-family:var(--display);font-size:26px;font-weight:800}
 .stat span{font-size:12px;color:var(--muted);font-weight:600}
 .block-title{font-weight:700;margin:0}
-.sub{background:var(--bg);border-radius:18px;padding:14px;margin-bottom:14px}
-.sub .hm i{background:var(--surface)}
-.sub .hm .l1{background:color-mix(in srgb,var(--cobalt) 30%,var(--surface))}
-.sub .hm .l2{background:color-mix(in srgb,var(--cobalt) 55%,var(--surface))}
-.sub .hm .l3{background:color-mix(in srgb,var(--cobalt) 78%,var(--surface))}
-.sub .hm .l4{background:var(--cobalt)}
+.sub{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:14px}
+.sub .hm i{background:var(--raised)}
+.sub .hm .l1{background:color-mix(in srgb,var(--teal) 30%,var(--raised))}
+.sub .hm .l2{background:color-mix(in srgb,var(--teal) 55%,var(--raised))}
+.sub .hm .l3{background:color-mix(in srgb,var(--teal) 78%,var(--raised))}
+.sub .hm .l4{background:var(--teal)}
 .mcal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .navs{display:flex;gap:8px}
 .navbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;padding:0}
@@ -160,9 +167,9 @@ textarea{min-height:120px;font-size:13px}
 .mcal .hd{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding-bottom:2px}
 .mcal button,.mcal span.cell{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:14px;font-weight:600;border:0;background:none;padding:0}
 .mcal .out{color:var(--muted);opacity:.35}
-.mcal .on{background:var(--cobalt);color:var(--on-cobalt)}
+.mcal .on{background:var(--teal);color:var(--on-teal)}
 .mcal .today{box-shadow:inset 0 0 0 2px var(--cobalt)}
-.mcal .on.today{box-shadow:inset 0 0 0 2px var(--on-cobalt)}
+.mcal .on.today{box-shadow:inset 0 0 0 2px var(--on-teal)}
 .mcal .fut{color:var(--muted);opacity:.4}
 
 /* Stamp celebration */
@@ -184,7 +191,7 @@ nav .in{max-width:560px;margin:0 auto;display:flex}
 nav button{flex:1;background:none;border:0;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--muted)}
 nav button[aria-current="page"]{color:var(--cobalt)}
 nav svg{width:24px;height:24px}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#F2F2F2;color:#121212;
   padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:50;max-width:90%;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -331,6 +338,7 @@ function overallHeat(k){
 
 /* ---------- views ---------- */
 let tab = 'today';
+let reordering = false;
 function render(){
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.tab===tab ? 'page' : 'false'));
   $('#view').innerHTML = tab==='today' ? viewToday() : tab==='rewards' ? viewRewards() : viewTags();
@@ -363,13 +371,20 @@ function viewToday(){
   const due = S.habits.filter(h => isDaily(h) || doneToday(h) || !metThisWeek(h));
   const done = due.filter(doneToday).length;
   const pending = h => !doneToday(h) && !metThisWeek(h);
-  const sorted = [...S.habits].sort((a,b) => pending(b) - pending(a));
+  const sorted = S.habits;
   return `<p class="date">${dateStr}</p>
   <div class="hero">
     <div><div class="count">${done}<span>/${due.length}</span></div><div class="count-label">${done===due.length?'All done for today':'tapped today'}</div></div>
     <div class="lvl"><span class="small muted">Level</span><b>${lvl}</b><span class="small muted">${bal} pts</span></div>
   </div>
   <div class="segs" aria-hidden="true">${due.map(h=>`<i class="seg${doneToday(h)?' on':''}"></i>`).join('')}</div>
+  ${S.habits.length > 1 ? `<div class="list-head"><h3>Your habits</h3><button class="linkbtn" data-act="reorder">${reordering ? 'Done' : 'Reorder'}</button></div>` : ''}
+  ${reordering ? `<p class="reorder-hint">Drag the handles to change the order.</p>
+  <div class="list" id="rlist">${S.habits.map((h,i)=>`<div class="card reorder" data-i="${i}">
+      <span class="tag">${h.emoji}</span>
+      <span><span class="name">${esc(h.name)}</span><br><span class="room">${esc(h.room||'')}</span></span>
+      <button class="handle" data-handle="${i}" aria-label="Move ${esc(h.name)}. Use up and down arrow keys."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8h14M5 12h14M5 16h14"/></svg></button>
+    </div>`).join('')}</div>` : `
   <div class="list">${sorted.map(h=>{
     const s = streakOf(h), dn = doneToday(h), daily = isDaily(h), n = thisWeek(h), t = target(h), met = metThisWeek(h);
     let note = '';
@@ -383,7 +398,8 @@ function viewToday(){
       <span class="streak"><b>${s}</b><span>${unit(h,s)}</span>${note}</span>
     </button>`;}).join('')}
   </div>
-  <div class="add-row"><button class="btn ghost block" data-act="add">Add a habit</button></div>`;
+  `}
+  ${reordering ? '' : `<div class="add-row"><button class="btn ghost block" data-act="add">Add a habit</button></div>`}`;
 }
 
 function badgeRow(title, ms, best, u){
@@ -616,7 +632,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-tab],[data-open],[data-act],[data-suggest],[data-copy],[data-redeem],[data-delreward],[data-close]');
   if(!t) return;
   if(t.hasAttribute('data-close')){ if(e.target === t || t.tagName === 'BUTTON'){ closeSheet(); render(); } return; }
-  if(t.dataset.tab){ tab = t.dataset.tab; render(); window.scrollTo(0,0); }
+  if(t.dataset.tab){ tab = t.dataset.tab; reordering = false; render(); window.scrollTo(0,0); }
   else if(t.dataset.open){ calOffset = 0; openDetail(t.dataset.open); }
   else if(t.dataset.suggest){ const s = SUGGEST[+t.dataset.suggest]; S.habits.push({id:uid(), ...s, created:today(), log:[]}); save(); render(); }
   else if(t.dataset.copy){ const h = S.habits.find(x=>x.id===t.dataset.copy); h && copyText(tagUrl(h)); }
@@ -625,6 +641,7 @@ document.addEventListener('click', e => {
     if(r && earned()-spent() >= r.cost){ S.redeemed.push({name:r.name, cost:r.cost, date:today()}); save(); render(); toast(`Enjoy: ${r.name}`); }
   }
   else if(t.dataset.delreward){ S.rewards = S.rewards.filter(x=>x.id!==t.dataset.delreward); save(); render(); }
+  else if(t.dataset.act==='reorder'){ reordering = !reordering; render(); }
   else if(t.dataset.act==='add') openHabitForm();
   else if(t.dataset.act==='addreward') openAddReward();
   else if(t.dataset.act==='backup') copyText(JSON.stringify(S));
@@ -636,6 +653,56 @@ document.addEventListener('change', e => {
 document.addEventListener('keydown', e => { if(e.key==='Escape' && $('#layer').innerHTML){ closeSheet(); render(); } });
 window.addEventListener('hashchange', handleTap);
 document.addEventListener('visibilitychange', () => { if(!document.hidden && !$('#layer').innerHTML) render(); });
+
+/* ---------- reorder by drag ---------- */
+function moveHabit(from, to){
+  if(from === to) return;
+  const [h] = S.habits.splice(from, 1); S.habits.splice(to, 0, h); save();
+}
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  const handle = e.target.closest('[data-handle]'); if(!handle) return;
+  e.preventDefault();
+  const cards = [...document.querySelectorAll('#rlist .card')];
+  const from = +handle.dataset.handle, el = cards[from];
+  drag = { el, from, to: from, startY: e.clientY, cards,
+    rects: cards.map(c => c.getBoundingClientRect()), id: e.pointerId };
+  drag.step = drag.rects.length > 1 ? drag.rects[1].top - drag.rects[0].top : drag.rects[0].height + 12;
+  handle.setPointerCapture(e.pointerId);
+  el.classList.add('dragging');
+});
+document.addEventListener('pointermove', e => {
+  if(!drag || e.pointerId !== drag.id) return;
+  const dy = e.clientY - drag.startY, r = drag.rects[drag.from];
+  drag.el.style.transform = `translateY(${dy}px)`;
+  const mid = r.top + r.height/2 + dy;
+  let to = 0;
+  drag.rects.forEach((rc, i) => { if(i !== drag.from && rc.top + rc.height/2 < mid) to++; });
+  drag.to = to;
+  drag.cards.forEach((c, i) => {
+    if(i === drag.from) return;
+    let shift = 0;
+    if(drag.from < to && i > drag.from && i <= to) shift = -drag.step;
+    if(drag.from > to && i < drag.from && i >= to) shift = drag.step;
+    c.style.transform = shift ? `translateY(${shift}px)` : '';
+  });
+});
+function endDrag(e){
+  if(!drag || e.pointerId !== drag.id) return;
+  const {from, to} = drag; drag = null;
+  moveHabit(from, to); render();
+  if(from !== to && navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
+}
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
+document.addEventListener('keydown', e => {
+  const handle = e.target.closest && e.target.closest('[data-handle]');
+  if(!handle || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+  e.preventDefault();
+  const from = +handle.dataset.handle, to = Math.max(0, Math.min(S.habits.length-1, from + (e.key==='ArrowUp' ? -1 : 1)));
+  moveHabit(from, to); render();
+  const next = document.querySelector(`[data-handle="${to}"]`); next && next.focus();
+});
 
 render();
 handleTap();
