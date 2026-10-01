@@ -61,6 +61,7 @@ h3{font-size:19px;font-weight:600}
 .dot.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
 .dot.today{outline:2px solid var(--ink);outline-offset:1px}
 .dot.fut{opacity:.4}
+.dot.saved{border:1.5px dashed var(--teal)}
 .streak{text-align:right}
 .streak b{display:block;font-family:var(--display);font-weight:800;font-size:34px;line-height:1}
 .streak span{font-size:12px;color:var(--muted);font-weight:600}
@@ -171,6 +172,8 @@ textarea{min-height:120px;font-size:13px}
 .mcal .today{box-shadow:inset 0 0 0 2px var(--cobalt)}
 .mcal .on.today{box-shadow:inset 0 0 0 2px var(--on-teal)}
 .mcal .fut{color:var(--muted);opacity:.4}
+.mcal .saved{outline:2px dashed var(--teal);outline-offset:-5px}
+.rule{font-size:13px;color:var(--muted);margin:-6px 2px 16px}
 
 /* Stamp celebration */
 .stampwrap{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -252,26 +255,61 @@ const thisWeek = h => weekCounts(h)[weekStart(today())] || 0;
 const metThisWeek = h => !isDaily(h) && thisWeek(h) >= target(h);
 const doneToday = h => h.log.includes(today());
 
-function weeksRunBefore(counts, t, w){ let n=0, x=addDays(w,-7); while((counts[x]||0) >= t){ n++; x=addDays(x,-7); } return n; }
-function streakOf(h){
-  if(isDaily(h)){
-    const set = new Set(h.log); let d = today();
-    if(!set.has(d)) d = addDays(d,-1);
-    let n = 0; while(set.has(d)){ n++; d = addDays(d,-1); } return n;
+/* Never miss twice: one missed day (or week) is forgiven, two in a row ends the streak.
+   A streak counts the days (or weeks) you actually did it. */
+const metWeek = (c, t, w) => (c[w]||0) >= t;
+// Count a run walking back from a met unit, allowing single-unit gaps.
+function runBack(has, from, step){
+  let n = 1, cur = from;
+  for(;;){
+    if(has(addDays(cur,-step))) cur = addDays(cur,-step);
+    else if(has(addDays(cur,-2*step))) cur = addDays(cur,-2*step);
+    else break;
+    n++;
   }
-  const c = weekCounts(h), t = target(h), w = weekStart(today());
-  return weeksRunBefore(c, t, w) + ((c[w]||0) >= t ? 1 : 0); // this week only counts once it's met
+  return n;
+}
+function weeksRunBefore(counts, t, w){ // soft streak of met weeks before week w
+  const has = x => metWeek(counts, t, x);
+  if(has(addDays(w,-7))) return runBack(has, addDays(w,-7), 7);
+  if(has(addDays(w,-14))) return runBack(has, addDays(w,-14), 7);
+  return 0;
+}
+function streakOf(h){
+  const t0 = today();
+  if(isDaily(h)){
+    const set = new Set(h.log), has = d => set.has(d);
+    for(const back of [0,1,2]){ const d = addDays(t0,-back); if(has(d)) return runBack(has, d, 1); }
+    return 0; // last done 3+ days ago means two full days missed
+  }
+  const c = weekCounts(h), t = target(h), w = weekStart(t0), has = x => metWeek(c, t, x);
+  for(const back of [0,7,14]){ const x = addDays(w,-back); if(has(x)) return runBack(has, x, 7); }
+  return 0;
+}
+function softBest(units, step){
+  let best=0, run=0, prev=null;
+  for(const u of units){ run = (prev && addDays(prev, 2*step) >= u) ? run+1 : 1; best = Math.max(best,run); prev = u; }
+  return best;
 }
 function bestOf(h){
-  if(isDaily(h)){
-    const ds = [...new Set(h.log)].sort(); let best=0, run=0, prev=null;
-    for(const d of ds){ run = (prev && addDays(prev,1)===d) ? run+1 : 1; best = Math.max(best,run); prev = d; }
-    return best;
-  }
+  if(isDaily(h)) return softBest([...new Set(h.log)].sort(), 1);
   const c = weekCounts(h), t = target(h);
-  const met = Object.keys(c).filter(w => c[w] >= t).sort(); let best=0, run=0, prev=null;
-  for(const w of met){ run = (prev && addDays(prev,7)===w) ? run+1 : 1; best = Math.max(best,run); prev = w; }
-  return best;
+  return softBest(Object.keys(c).filter(w => c[w] >= t).sort(), 7);
+}
+// Days that were missed but forgiven (shown with a dashed ring).
+function savedDays(h){
+  const out = new Set(); if(!isDaily(h)) return out;
+  const ds = [...new Set(h.log)].sort();
+  for(let i=1;i<ds.length;i++) if(addDays(ds[i-1],2) === ds[i]) out.add(addDays(ds[i-1],1));
+  const t0 = today(), last = ds[ds.length-1];
+  if(last === addDays(t0,-2)) out.add(addDays(t0,-1)); // yesterday missed, streak still alive
+  return out;
+}
+const missedYesterday = h => isDaily(h) && streakOf(h) > 0 && !h.log.includes(addDays(today(),-1)) && !doneToday(h);
+function missedLastWeek(h){
+  if(isDaily(h)) return false;
+  const c = weekCounts(h), t = target(h), w = weekStart(today());
+  return !metWeek(c, t, addDays(w,-7)) && metWeek(c, t, addDays(w,-14));
 }
 // Daily: +2 per day of streak (max +40). Weekly: +4 per week of streak (max +40).
 function tapValueAt(h, d, dayRun, counts){
@@ -281,7 +319,7 @@ function tapValueAt(h, d, dayRun, counts){
 function habitPoints(h){
   const ds = [...new Set(h.log)].sort(), counts = isDaily(h) ? null : weekCounts(h);
   let pts=0, run=0, prev=null;
-  for(const d of ds){ run = (prev && addDays(prev,1)===d) ? run+1 : 1; pts += tapValueAt(h, d, run, counts); prev = d; }
+  for(const d of ds){ run = (prev && addDays(prev,2) >= d) ? run+1 : 1; pts += tapValueAt(h, d, run, counts); prev = d; }
   return pts;
 }
 const earned = () => S.habits.reduce((a,h)=>a+habitPoints(h),0);
@@ -329,7 +367,7 @@ function heatmap(levelFn, weeks){
     <div class="hmscroll"><div class="hmmonths">${months}</div><div class="hm" role="img" aria-label="Activity heatmap">${cells}</div></div></div>`;
 }
 const scrollHeatmaps = () => document.querySelectorAll('.hmscroll').forEach(el => el.scrollLeft = el.scrollWidth);
-function habitHeat(h){ const set = new Set(h.log); return k => set.has(k) ? [4,'done'] : [0,'not done']; }
+function habitHeat(h){ const set = new Set(h.log), sv = savedDays(h); return k => set.has(k) ? [4,'done'] : sv.has(k) ? [1,'missed, streak saved'] : [0,'not done']; }
 function overallHeat(k){
   const n = S.habits.length; if(!n) return [0,'nothing'];
   const done = S.habits.filter(h => h.log.includes(k)).length;
@@ -346,11 +384,11 @@ function render(){
 }
 
 function weekDots(h){
-  const set = new Set(h.log), t = today(); let out='';
+  const set = new Set(h.log), sv = savedDays(h), t = today(); let out='';
   const start = isDaily(h) ? addDays(t,-6) : weekStart(t);
   for(let i=0;i<7;i++){
     const k = addDays(start,i), d = dateOf(k);
-    out += `<span class="dot${set.has(k)?' on':''}${k===t?' today':''}${k>t?' fut':''}" title="${d.toDateString()}">${'SMTWTFS'[d.getDay()]}</span>`;
+    out += `<span class="dot${set.has(k)?' on':''}${sv.has(k)?' saved':''}${k===t?' today':''}${k>t?' fut':''}" title="${d.toDateString()}">${'SMTWTFS'[d.getDay()]}</span>`;
   }
   return out;
 }
@@ -388,9 +426,13 @@ function viewToday(){
   <div class="list">${sorted.map(h=>{
     const s = streakOf(h), dn = doneToday(h), daily = isDaily(h), n = thisWeek(h), t = target(h), met = metThisWeek(h);
     let note = '';
-    if(daily && !dn && s>0) note = `<div class="risk">Tap today</div>`;
+    const daysLeft = 7 - ((new Date().getDay()+6)%7), need = t - n;
+    if(daily && missedYesterday(h)) note = `<div class="risk">Don't miss twice</div>`;
+    else if(daily && !dn && s>0) note = `<div class="risk">Tap today</div>`;
     else if(!daily && met) note = `<div class="ok">Week done</div>`;
-    else if(!daily) note = `<div class="${s>0?'risk':'ok'}">${n} of ${t} this week</div>`;
+    else if(!daily && missedLastWeek(h)) note = `<div class="risk">${need > daysLeft ? 'Streak ends Sunday' : "Don't miss twice"}</div><div class="ok">${n} of ${t} this week</div>`;
+    else if(!daily && s>0 && need > daysLeft) note = `<div class="ok">Off week, streak safe</div>`;
+    else if(!daily) note = `<div class="${s>0 && need === daysLeft ? 'risk' : 'ok'}">${n} of ${t} this week</div>`;
     return `<button class="card${met && !dn ? ' rest' : ''}" data-open="${h.id}" aria-label="${esc(h.name)}, ${s} ${unit(h,s)} streak${dn?', done today':''}">
       <span class="tag${dn?' done':met?' met':''}">${h.emoji}</span>
       <span><span class="name">${esc(h.name)}</span><br><span class="room">${esc(h.room ? h.room+', ' : '')}${freqLabel(t).toLowerCase()}</span>
@@ -511,7 +553,7 @@ function openHabitForm(existing, presetId){
 
 let calOffset = 0;
 function monthCal(h){
-  const set = new Set(h.log), t = today(), now = new Date();
+  const set = new Set(h.log), sv = savedDays(h), t = today(), now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth() + calOffset, 1);
   const lead = (first.getDay()+6)%7, startK = addDays(keyOf(first), -lead);
   const daysIn = new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
@@ -519,7 +561,7 @@ function monthCal(h){
   let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(l=>`<div class="hd">${l}</div>`).join('');
   for(let i=0;i<cellsN;i++){
     const k = addDays(startK, i), d = dateOf(k), inMonth = d.getMonth() === first.getMonth();
-    const cls = `${set.has(k)?'on':''}${k===t?' today':''}${!inMonth?' out':''}${k>t?' fut':''}`;
+    const cls = `${set.has(k)?'on':''}${sv.has(k)?' saved':''}${k===t?' today':''}${!inMonth?' out':''}${k>t?' fut':''}`;
     html += k > t || !inMonth
       ? `<span class="cell ${cls}">${d.getDate()}</span>`
       : `<button class="${cls}" data-day="${k}" aria-pressed="${set.has(k)}" aria-label="${d.toDateString()}">${d.getDate()}</button>`;
@@ -544,6 +586,7 @@ function openDetail(id, still){
       <div class="stat"><b>${b}</b><span>Best ${unit(h,2).replace(/s$/,'')} streak</span></div>
       <div class="stat"><b>${new Set(h.log).size}</b><span>Total taps</span></div>
     </div>
+    <p class="rule">Never miss twice: missing one ${isDaily(h)?'day':'week'} won't break your streak, but two in a row will.${isDaily(h)?' Dashed rings show missed days your streak survived.':''}</p>
     <div class="sub"><div class="hmhead"><p class="block-title">Last 6 months</p><span class="small muted">${halfYear} taps</span></div>${heatmap(habitHeat(h), 26)}</div>
     <div class="sub">${monthCal(h)}</div>
     <button class="btn block" id="toggle">${dn?'Undo today':'Stamp today without a tag'}</button>
@@ -604,8 +647,10 @@ function celebrate(h, fresh){
   const pts = fresh ? tapValueAt(h, today(), s, weekCounts(h)) : 0;
   let big, line;
   if(!fresh){ big = 'Already stamped'; line = `${esc(h.name)} is done for today`; }
-  else if(daily){ big = s>1 ? `${s} days in a row` : 'Streak started'; line = `${esc(h.name)}: +${pts} points`; }
-  else if(n === t){ big = 'Week complete'; line = `${esc(h.name)}: ${s} ${unit(h,s)} in a row, +${pts} points`; }
+  else if(daily && s>1 && !h.log.includes(addDays(today(),-1))){ big = 'Back on track'; line = `${esc(h.name)}: you never missed twice. ${s}-day streak, +${pts} points`; }
+  else if(daily){ big = s>1 ? `${s}-day streak` : 'Streak started'; line = `${esc(h.name)}: +${pts} points`; }
+  else if(n === t && s>1 && missedLastWeek(h)){ big = 'Back on track'; line = `${esc(h.name)}: you never missed twice. ${s}-week streak, +${pts} points`; }
+  else if(n === t){ big = 'Week complete'; line = `${esc(h.name)}: ${s}-week streak, +${pts} points`; }
   else if(n < t){ big = `${n} of ${t} this week`; line = `${esc(h.name)}: ${t-n} more to complete the week, +${pts} points`; }
   else { big = 'Bonus session'; line = `${esc(h.name)}: ${n} this week, +${pts} points`; }
   const ms = daily ? DAY_MILESTONES : WEEK_MILESTONES;
